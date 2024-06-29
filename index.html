@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta data-rh="true" name="viewport" content="initial-scale=1, minimum-scale=1, maximum-scale=5, user-scalable=no, width=device-width">
+<title>Template Bootstrap 5</title>
+<!-- <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<section class="container store-container px-0">
+    <section class="top-content">
+        <div class="row gx-0 pt-3 pb-2 block-nav px-3">
+            <div class="col-5">
+                <h1 class="logo-text fs-5 mb-0">Bitha Dessert<img alt="verified" class="verified-ico" src="./verified.png"></h1>              
+                <div class="sub-header">Online Shop</div>
+            </div>
+            <div class="col-7 text-end">
+                <div class="ico-block">
+                    <i class="fa-solid fa-ellipsis-vertical fs-5"></i>
+                </div>
+                <div class="ico-block">
+                    <i class="fab fa-whatsapp fs-3"></i>
+                </div>
+                <div class="ico-block" onclick="window.location.href = 'cart.html'">
+                    <i class="fas fa-shopping-cart fs-5"></i>
+                </div>
+            </div>
+        </div>
+        <div class="container my-3">
+            <div class="row gx-2">
+                <div class="col-2">
+                    <div class="filter-block" id="openPopup">
+                        <i class="fa-solid fa-list-check"></i>
+                    </div>
+                </div>
+                <div class="col-10">
+                    <div class="input-group rounded-lg" id="search-box">
+                        <span class="input-group-text">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </span>
+                        <input type="text" class="form-control" placeholder="Apa yang dicari?" id="search-text">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="mid-content container my-3">
+        <!-- INFO -->
+        <!-- <div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
+            <strong>Holy guacamole!</strong> You should check in on some of those fields below.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div> -->
+        <div class="row mt-4 gx-3" id="product-list">
+            <!-- LIST PRODUCT -->
+        </div>
+    </section>
+    <!-- <header class="bg-primary text-center text-white py-5">
+        <h1>Welcome to our Website</h1>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+        <button id="openPopup" class="btn btn-primary">Open Popup</button>
+    </header> -->
+    <div id="popupContainer" class="popup-container">
+        <div class="popup-content">
+            <div class="popup-header">
+                <div class="popup-handle"></div>
+            </div>
+            <div class="popup-body">
+                <h4>Filter</h4>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. </p>
+            </div>
+            <div class="popup-footer">
+                <button id="closePopup" class="btn btn-secondary">OK</button>
+            </div>
+        </div>
+        <div id="closeArea" class="close-area"></div>
+    </div>
+</section>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.44.2/+esm';
+
+    const supabaseUrl = 'https://iblbqnrnywbillkjwaob.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlibGJxbnJueXdiaWxsa2p3YW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTk1OTk3MDksImV4cCI6MjAzNTE3NTcwOX0.mo1Swbkk9u53R5HWF7V_5vpsRSRsSvGmFidUI_bvBuU';
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    async function saveData() {
+        const data = document.getElementById('inputData').value;
+        const { error } = await supabase
+            .from('product')
+            .insert([{ data: data }]);
+        if (error) console.error('Error:', error);
+    }
+
+    // async function loadData() {
+    //     const { data, error } = await supabase
+    //         .from('product')
+    //         .select('*');
+    //     if (error) {
+    //         console.error('Error:', error);
+    //     } else {
+    //         console.log('Data:', data);
+    //         displayData(data);
+    //     }
+    // }
+
+    async function loadData() {
+        // Cek apakah data masih valid di localStorage
+        const cachedData = localStorage.getItem('supabaseData');
+        const cacheTime = localStorage.getItem('supabaseDataTimestamp');
+        const currentTime = new Date().getTime();
+
+        if (cachedData && cacheTime && (currentTime - cacheTime < 3600000)) {
+            // Data masih valid, gunakan data dari cache
+            const data = JSON.parse(cachedData);
+            console.log('Data loaded from cache:', data);
+            displayData(data);
+        } else {
+            // Ambil data dari Supabase jika tidak ada atau sudah kadaluwarsa
+            const { data, error } = await supabase
+                .from('product')
+                .select('*');
+            if (error) {
+                console.error('Error:', error);
+            } else {
+                console.log('Data loaded from Supabase:', data);
+                // Simpan data ke localStorage
+                localStorage.setItem('supabaseData', JSON.stringify(data));
+                localStorage.setItem('supabaseDataTimestamp', currentTime);
+                displayData(data);
+            }
+        }
+    }
+
+    function displayData(data) {
+        $('#product-list').empty();
+        $.each(data, function(index, product) {
+            // Buat elemen kolom
+            var column = $('<div class="col-6"></div>');
+            
+            // Buat elemen kartu produk
+            var card = $('<div class="card mb-3"></div>');
+            var cardImg = $('<div class="card-img"></div>');
+            var cardImgContainer = $('<div class="card-img-container"></div>');
+            var img = $('<img src="' + product.image + '" class="card-img-top" alt="Gambar Produk">');
+            var cardBody = $('<div class="card-body"></div>');
+            var title = $('<h5 class="card-title">' + product.title + '</h5>');
+            var price = $('<p class="card-text card-price">' + product.price + '</p>');
+            var stock = (product.stock === "Stok Tidak Tersedia")? $('<p class="card-text text-danger">' + product.stock + '</p>') : $('<p class="card-text">' + product.stock + '</p>');
+
+            var button = (product.stock === "Stok Tidak Tersedia")? $('<button class="btn btn-blue w-100 disabled">Habis</button>') : $('<button class="btn btn-blue w-100">Beli</button>');
+
+            // Tambahkan elemen ke dalam struktur kartu produk
+            cardImgContainer.append(img);
+            cardImg.append(cardImgContainer);
+            card.append(cardImg);
+            cardBody.append(title, price, stock, button);
+            card.append(cardBody);
+
+            // Tambahkan kartu produk ke dalam elemen kolom
+            column.append(card);
+            
+            // Tambahkan kolom ke dalam elemen dengan id "product-list"
+            $('#product-list').append(column);
+        });
+    }
+
+    $(document).ready(function() {
+        loadData();
+    });
+</script>
+
+<script>
+    $(document).ready(function() {
+        // Popup Mobile
+        var startY, startMarginTop;
+        var threshold = 0.4; // Persentase jarak yang ditarik ke bawah
+        var isDragging = false;
+
+        $('#openPopup').click(function() {
+            $('#popupContainer').show();
+        });
+
+        $('#closePopup').click(function() {
+            closePopup();
+        });
+
+        $('.popup-header').on('mousedown touchstart', function(e) {
+            e.preventDefault();
+            startY = e.pageY || e.originalEvent.touches[0].pageY;
+            startMarginTop = parseInt($('.popup-content').css('margin-top'));
+            isDragging = true;
+            $('.popup-content').addClass('dragging');
+        });
+
+        $(document).on('mousemove touchmove', function(e) {
+            if (isDragging) {
+            e.preventDefault();
+            var newY = e.pageY || e.originalEvent.touches[0].pageY;
+            var distance = newY - startY;
+
+            if (distance > 0 && distance <= threshold * $(window).height()) {
+                $('.popup-content').css('margin-top', startMarginTop + distance);
+                $('.popup-content').css('margin-bottom', -(startMarginTop + distance));
+            }
+            }
+        });
+
+        $(document).on('mouseup touchend', function() {
+            if (isDragging) {
+            isDragging = false;
+            var currentMarginTop = parseInt($('.popup-content').css('margin-top'));
+            var thresholdDistance = threshold * $(window).height();
+
+            if (currentMarginTop > thresholdDistance) {
+                closePopup();
+            } else {
+                $('.popup-content').css('margin-top', startMarginTop);
+                $('.popup-content').css('margin-bottom', -startMarginTop);
+                $('.popup-content').removeClass('dragging');
+            }
+            }
+        });
+
+        function closePopup() {
+            $('#popupContainer').hide();
+            $('.popup-content').css('margin-top', 65);
+            $('.popup-content').css('margin-bottom', 0);
+        }
+
+        // $.getJSON('products.json', function(data) { 
+        //     if(data){
+        //         $.each(data, function(index, product) {
+        //             // Buat elemen kolom
+        //             var column = $('<div class="col-6"></div>');
+                    
+        //             // Buat elemen kartu produk
+        //             var card = $('<div class="card mb-3"></div>');
+        //             var cardImg = $('<div class="card-img"></div>');
+        //             var cardImgContainer = $('<div class="card-img-container"></div>');
+        //             var img = $('<img src="' + product.image + '" class="card-img-top" alt="Gambar Produk">');
+        //             var cardBody = $('<div class="card-body"></div>');
+        //             var title = $('<h5 class="card-title">' + product.title + '</h5>');
+        //             var price = $('<p class="card-text card-price">' + product.price + '</p>');
+        //             var stock = (product.stock === "Stok Tidak Tersedia")? $('<p class="card-text text-danger">' + product.stock + '</p>') : $('<p class="card-text">' + product.stock + '</p>');
+
+        //             var button = (product.stock === "Stok Tidak Tersedia")? $('<button class="btn btn-blue w-100 disabled">Habis</button>') : $('<button class="btn btn-blue w-100">Beli</button>');
+
+        //             // Tambahkan elemen ke dalam struktur kartu produk
+        //             cardImgContainer.append(img);
+        //             cardImg.append(cardImgContainer);
+        //             card.append(cardImg);
+        //             cardBody.append(title, price, stock, button);
+        //             card.append(cardBody);
+
+        //             // Tambahkan kartu produk ke dalam elemen kolom
+        //             column.append(card);
+                    
+        //             // Tambahkan kolom ke dalam elemen dengan id "product-list"
+        //             $('#product-list').append(column);
+        //         });
+        //     }
+        // });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta data-rh="true" name="viewport" content="initial-scale=1, minimum-scale=1, maximum-scale=5, user-scalable=no, width=device-width">
+<title>Template Bootstrap 5</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<section class="container cart-page store-container px-0">
+    <section class="top-content">
+        <div class="row gx-0 pt-3 pb-3 block-nav px-3 top-nav">
+            <div class="col-5">
+                <h1 class="logo-text fs-5 mb-0">Keranjang</h1>
+            </div>
+            <div class="col-7 text-end">
+                <div class="ico-block" id="backToHome">
+                    <i class="fa-solid fa-xmark fs-4"></i>
+                </div>
+            </div>
+            <div class="col-12 mt-4">
+                <input class="form-check-input all-check-cart" type="checkbox" value="" id="flexCheckDefault">
+                <label class="form-check-label" for="flexCheckDefault">
+                    Pilih Semua Barang
+                </label>
+            </div>
+        </div>
+    </section>
+    <section class="mid-content my-3" id="list-cart">
+        <div class="pay-detail">
+            <div class="row gx-0 px-3">
+                <div class="col-6">
+                    <div class="pay-info">Total Harga (<span class="count-all-qty">0</span>) Produk</div>
+                    <div class="pay-price">Rp 25.000</div>
+                </div>
+                <div class="col-6">
+                    <div class="block-pay-btn">
+                        <button class="btn btn-primary btn-pay px-4">Checkout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</section>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        $('#list-cart').on('input', '.auto-height', function() {
+            var maxLength = $(this).attr('maxlength');
+            if (maxLength) {
+            maxLength = parseInt(maxLength);
+            var currentLength = $(this).val().length;
+            var remainingLength = maxLength - currentLength;
+            
+            $(this).closest('.note-area').find('.counter').text(currentLength + '/' + maxLength);
+            
+            if (remainingLength <= 10) {
+                $(this).closest('.note-area').find('.counter').addClass('text-danger');
+            } else {
+                $(this).closest('.note-area').find('.counter').removeClass('text-danger');
+            }
+            }
+            
+            // Mengatur tinggi textarea
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight + 2) + 'px';
+        });
+        
+        $('#list-cart').on('focus', '.auto-height', function() {
+            $(this).closest('.note-area').find('.counter').addClass('show');
+        });
+        
+        $('#list-cart').on('blur', '.auto-height', function() {
+            $(this).closest('.note-area').find('.counter').removeClass('show');
+        });
+        $('#list-cart').on('keypress keydown', '.auto-height', function(e) {
+            if (e.keyCode == 13) {
+            e.preventDefault();
+            return false;
+            }
+        });
+
+        // Cart Qty
+        var minValue = 1; // Nilai terkecil
+        // Fungsi tombol plus
+        $('#list-cart').on('click', '.plus-button', function() {
+            var counter = $(this).siblings('.counter-quantity');
+            var currentValue = parseInt(counter.text());
+            counter.text(currentValue + 1);
+            updateCartQty(totalQuantity + 1);
+        });
+        
+        // Fungsi tombol minus
+        $('#list-cart').on('click', '.minus-button', function() {
+            var counter = $(this).siblings('.counter-quantity');
+            var currentValue = parseInt(counter.text());
+            if (currentValue > minValue) {
+                counter.text(currentValue - 1);
+            updateCartQty(totalQuantity - 1);
+            }
+        });
+
+        // Ketika checkbox dengan class .all-check-cart diubah statusnya
+        $('.all-check-cart').change(function() {
+            // Jika checkbox .all-check-cart di-check
+            if ($(this).is(':checked')) {
+            // Check semua checkbox dengan class .check-prd
+            $('.check-prd').prop('checked', true);
+            } else {
+            // Uncheck semua checkbox dengan class .check-prd
+            $('.check-prd').prop('checked', false);
+            }
+
+            // Hitung total jumlah angka di counter-quantity yang ter-checked
+            var totalQuantity = 0;
+            $('.check-prd:checked').each(function() {
+            var counterQuantity = parseInt($(this).closest('.prd-list').find('.counter-quantity').text());
+            if (!isNaN(counterQuantity)) {
+                totalQuantity += counterQuantity;
+            }
+            });
+
+            // Simpan total jumlah ke variabel global
+            updateCartQty(totalQuantity)
+        });
+
+        // Ketika checkbox dengan class .check-prd diubah statusnya
+        $('#list-cart').on('change', '.check-prd', function() {
+            console.log('AAAA')
+            // Hitung total jumlah angka di counter-quantity yang ter-checked
+            var totalQuantity = 0;
+            $('.check-prd:checked').each(function() {
+                var counterQuantity = parseInt($(this).closest('.prd-list').find('.counter-quantity').text());
+                if (!isNaN(counterQuantity)) {
+                    totalQuantity += counterQuantity;
+                }
+            });
+
+            // Periksa apakah semua checkbox .check-prd di-check
+            if ($('.check-prd').not('.all-check-cart').length === $('.check-prd:checked').not('.all-check-cart').length) {
+                // Jika semua di-check, check juga checkbox .all-check-cart
+                $('.all-check-cart').prop('checked', true);
+            } else {
+                // Jika ada yang tidak di-check, uncheck checkbox .all-check-cart
+                $('.all-check-cart').prop('checked', false);
+            }
+            updateCartQty(totalQuantity)
+        });
+
+        // Cart Product
+        var products = [
+            {
+                "id": 1,
+                "imageSrc": "https://images.tokopedia.net/img/cache/300-square/product-1/2020/9/10/103910747/103910747_0e12e62c-3187-411a-9a50-280a46a33a57_1500_1500",
+                "title": "SKINTIFIC 5X Ceramide Barrier Repair Moisture Gel 30g moisturizer",
+                "varian": "-",
+                "price": "Rp 14.000",
+                "note": "",
+                "counterQuantity": 1
+            },
+            {
+                "id": 2,
+                "imageSrc": "https://images.tokopedia.net/img/cache/700/product-1/2020/7/19/97658455/97658455_a53ceea3-0c0b-46ea-86b4-fc527fa500eb_2048_2048.webp?ect=4g",
+                "title": "Kaos Polo Shirt Kids Anak Kerah, umur 1-9 tahun",
+                "varian": "Ukuran S",
+                "price": "Rp 14.000",
+                "note": "",
+                "counterQuantity": 1
+            }
+        ];
+
+        // Loop through the products array
+        $.each(products, function(index, product) {
+            var productElement = $('<div class="row pt-4 gx-0 px-3 prd-list"></div>');
+            var checkbox = $('<input class="form-check-input check-prd col-1" type="checkbox" value="">');
+            productElement.append(checkbox);
+            var cartPrd = $('<div class="cart-prd col-11"></div>');
+            var image = $('<img alt="" src="' + product.imageSrc + '">');
+            cartPrd.append(image);
+            var cartInfo = $('<div class="cart-info"></div>');
+            var title = $('<div class="cart-title">' + product.title + '</div>');
+            cartInfo.append(title);
+            var cartVarian = $('<div class="cart-varian"></div>');
+            var varianTitle = $('<span class="varian-title">Varian : </span>');
+            cartVarian.append(varianTitle);
+            var varianValue = $('<span class="varian-value">' + product.varian + '</span>');
+            cartVarian.append(varianValue);
+            cartInfo.append(cartVarian);
+            var price = $('<div class="cart-price">' + product.price + '</div>');
+            cartInfo.append(price);
+            cartPrd.append(cartInfo);
+            productElement.append(cartPrd);
+            var noteArea = $('<div class="note-area mt-3"></div>');
+            var inputGroup = $('<div class="input-group"></div>');
+            var inputGroupText = $('<span class="input-group-text"><i class="fa-solid fa-pen-to-square"></i></span>');
+            inputGroup.append(inputGroupText);
+            var textarea = $('<textarea class="form-control note-text auto-height" rows="1" placeholder="Tambah catatan produk..." maxlength="150">' + product.note + '</textarea>');
+            inputGroup.append(textarea);
+            noteArea.append(inputGroup);
+            var counter = $('<span class="counter float-end">0/150</span>');
+            noteArea.append(counter);
+            productElement.append(noteArea);
+            var optionQuantity = $('<div class="option-quantity"></div>');
+            var trashCart = $('<div class="trash-cart"><i class="fa-solid fa-trash-can fs-3"></i></div>');
+            optionQuantity.append(trashCart);
+            var counterContainer = $('<div class="counter-container"></div>');
+            var minusButton = $('<button class="round-button minus-button"><i class="fas fa-minus fs-6"></i></button>');
+            counterContainer.append(minusButton);
+            var counterQuantity = $('<span class="counter-quantity">' + product.counterQuantity + '</span>');
+            counterContainer.append(counterQuantity);
+            var plusButton = $('<button class="round-button plus-button"><i class="fas fa-plus fs-6"></i></button>');
+            counterContainer.append(plusButton);
+            optionQuantity.append(counterContainer);
+            productElement.append(optionQuantity);
+            
+            $('#list-cart').append(productElement);
+        });
+
+         // Memeriksa apakah halaman sebelumnya adalah index.html
+        if (document.referrer.indexOf("index.html") !== -1) {
+            // Jika halaman sebelumnya adalah index.html
+            $("#backToHome").click(function() {
+                window.history.back();
+            });
+        } else {
+            // Jika halaman sebelumnya bukan index.html
+            $("#backToHome").click(function() {
+                window.location.href = "index.html";
+            });
+        }
+    });
+    function updateCartQty(total) {
+        window.totalQuantity = total;
+        $('.count-all-qty').text(totalQuantity);
+    }
+</script>
+</body>
+</html>
